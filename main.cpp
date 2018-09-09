@@ -12,6 +12,7 @@
 #include "header.h"
 
 using namespace std;
+
 /* returns packet id */
 void dump(unsigned char* buf, int size) {
 	int i;
@@ -78,11 +79,13 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     	struct tcp_hdr *tcph = (struct tcp_hdr *)data;
 		if(ntohs(tcph->th_sport)==80){
     			 data+=(tcph->th_off)*4;
-			 string  s_data;
+			 string s_data;
 			 s_data = (char*) data;
 			 regex find("hacking");
 			 s_data = regex_replace(s_data, find, "hooking");
-			 //cout << s_data << endl;
+			 char* data = const_cast<char*>(s_data.c_str());
+			 cout << data << endl;
+
 		}
     }
     return id;
