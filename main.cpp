@@ -9,6 +9,7 @@
 #include <linux/netfilter.h>        /* for NF_ACCEPT */
 #include <errno.h>
 #include <libnetfilter_queue/libnetfilter_queue.h>
+#define LIBNET_LIL_ENDIAN 1
 #include "header.h"
 
 using namespace std;
