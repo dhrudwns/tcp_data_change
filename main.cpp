@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string>
 #include <regex>
+#include <netinet/ip.h>
 #include <netinet/in.h>
 #include <linux/types.h>
 #include <linux/netfilter.h>        /* for NF_ACCEPT */
@@ -13,8 +14,48 @@
 #include "header.h"
 
 using namespace std;
+int flag=0;
+int new_len, data_len;
+unsigned char* new_data;
 
-/* returns packet id */
+struct pseudo_hdr {
+	u_int32_t ip_src;
+	u_int32_t ip_dst;
+	u_int8_t reserved=0;
+	u_int8_t ip_p;
+	u_int16_t tcp_length;	// ip_totallen - ip_hl*4
+};
+
+
+u_int16_t tcp_checksum(unsigned char *data) {
+	struct pseudo_hdr  p_hdr;
+	struct ipv4_hdr *iph = (struct ipv4_hdr *)data;
+	struct tcp_hdr *tcph = (struct tcp_hdr *)((uint8_t*)iph+iph->ip_hl*4);
+	u_int32_t sum;
+	u_int16_t oddbyte, answer;
+	p_hdr.ip_src = iph->ip_src;
+	p_hdr.ip_dst = iph->ip_dst;
+	p_hdr.ip_p = iph->ip_p;
+	p_hdr.tcp_length = ntohs(iph->ip_len) - (iph->ip_hl*4);
+	data_len = ntohs(iph->ip_len) - iph->ip_hl*4 - tcph->th_off*4;
+	sum = 0;
+	while(data_len>1) {
+		sum+=*data++;
+		data_len-=2;
+	}
+	if(data_len==1){
+		oddbyte=0;
+		*((u_char*)&oddbyte)=*(u_char*)data;
+		sum+=oddbyte;
+	}
+	sum = (sum>>16) + (sum & 0xffff); // front 2byte + back 2byte
+	sum = (sum>>16) + (sum & 0xffff);
+	sum += (sum >>16);
+	answer = ~sum;
+
+	return (answer);
+}
+
 void dump(unsigned char* buf, int size) {
 	int i;
 	for (i = 0; i < size; i++) {
@@ -44,28 +85,42 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     struct ipv4_hdr *iph = (struct ipv4_hdr *)data;
     if(iph->ip_p==6){
     	data+=(iph->ip_hl)*4;
+	printf("%d", iph->ip_len);
     	struct tcp_hdr *tcph = (struct tcp_hdr *)data;
 		if(ntohs(tcph->th_sport)==80){
     			 data+=(tcph->th_off)*4;
+			 regex pattern("hacking");
 			 string s_data;
 			 s_data = (char*) data;
+			 smatch m;
+			 if(regex_search(s_data, m, pattern))
+			 {
 			 regex find("hacking");
 			 s_data = regex_replace(s_data, find, "hooking");
-			 char* data = const_cast<char*>(s_data.c_str());
-			 cout << data << endl;
+			 unsigned char* new_data = (unsigned char*)s_data.c_str();
 
+			 flag=1;
+			 }
+			 else
+			 {
+				 flag=0;
+			 }
+				
+			 
 		}
     }
     return id;
 }
-
 
 static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
           struct nfq_data *nfa, void *data)
 {
     u_int32_t id = print_pkt(nfa);
     printf("entering callback\n");
-    return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
+    if(flag==1)
+    return nfq_set_verdict(qh, id, NF_ACCEPT, new_len, new_data);
+    else
+	    return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 }
 
 int main(int argc, char **argv)
