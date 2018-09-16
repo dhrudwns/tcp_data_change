@@ -25,23 +25,36 @@ struct Pseudoheader {
 	u_int16_t TCPLen;	// ip_totallen - ip_hl*4
 };
 
-u_int16_t calculate(uint16_t* data, int dataLen)
+uint16_t calculate(uint16_t* data, int dataLen)
 {
-	u_int16_t oddbyte, result;
-	u_int32_t sum=0;
-	while(dataLen>1) {
-		sum+=ntohs(*data++);
-		dataLen-=2;
-	}
-	if(dataLen==1){
-		oddbyte=0;
-		*((u_char*)&oddbyte)=ntohs(*(u_char*)data);
-		sum+=oddbyte;
-	}
-	sum = (sum>>16) + (sum & 0xffff);
-	sum = (sum>>16) + (sum & 0xffff);
-	result = (uint16_t)sum;	
-	return result;
+    uint16_t result;
+    int tempChecksum=0;
+    int length;
+    bool flag=false;
+    if((dataLen%2)==0)
+        length=dataLen/2;
+    else
+    {
+        length=(dataLen/2)+1;
+        flag=true;
+    }
+ 
+    for (int i = 0; i < length; ++i) // cal 2byte unit
+    {
+        
+ 
+        if(i==length-1&&flag) //last num is odd num
+            tempChecksum+=ntohs(data[i]&0x00ff);
+        else
+            tempChecksum+=ntohs(data[i]);
+ 
+        if(tempChecksum>CARRY)
+                tempChecksum=(tempChecksum-CARRY)+1;
+ 
+    }
+ 
+    result=tempChecksum;
+    return result;
 		
 }
 
@@ -65,13 +78,19 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
     //Cal TCP Segement Checksum
     tcph->th_sum=0; //set Checksum field 0
     uint16_t tcpHeaderResult=calculate((uint16_t*)tcph,ntohs(pseudoheader.TCPLen));
+    
     uint16_t checksum;
-    uint32_t temp;
-    temp = pseudoResult+tcpHeaderResult;
-    temp = (temp >> 16) + (temp & 0xffff);
-    temp = (temp >> 16) + (temp & 0xffff);
-    checksum = ~temp;
-    tcph->th_sum=checksum;
+    int tempCheck;
+ 
+    if((tempCheck=pseudoResult+tcpHeaderResult)>CARRY)
+        checksum=(tempCheck-CARRY) +1;
+    else
+        checksum=tempCheck;
+ 
+ 
+    checksum=ntohs(checksum^0xffff); //xor checksum
+    tcph->check=checksum;
+ 
     return checksum;
 
 
