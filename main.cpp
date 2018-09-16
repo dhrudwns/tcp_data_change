@@ -23,22 +23,32 @@ struct pseudo_hdr {
 	u_int32_t ip_dst;
 	u_int8_t reserved=0;
 	u_int8_t ip_p;
-	u_int16_t tcp_length;	// ip_totallen - ip_hl*4
+	u_int16_t t_len;	// ip_totallen - ip_hl*4
 };
 
 
 u_int16_t tcp_checksum(unsigned char *data) {
-	struct pseudo_hdr  p_hdr;
+	struct pseudo_hdr p_hdr;
 	struct ipv4_hdr *iph = (struct ipv4_hdr *)data;
 	struct tcp_hdr *tcph = (struct tcp_hdr *)((uint8_t*)iph+iph->ip_hl*4);
 	u_int32_t sum;
 	u_int16_t oddbyte, answer;
-	p_hdr.ip_src = iph->ip_src;
-	p_hdr.ip_dst = iph->ip_dst;
+	int i;
+	unsigned char *seudo;
+	
+	data_len = p_hdr.t_len - tcph->th_off*4;
+	
+	memcpy(&p_hdr.ip_src,&iph->ip_src, sizeof(p_hdr.ip_src));
+	memcpy(&p_hdr.ip_dst,&iph->ip_dst, sizeof(p_hdr.ip_dst));
 	p_hdr.ip_p = iph->ip_p;
-	p_hdr.tcp_length = ntohs(iph->ip_len) - (iph->ip_hl*4);
-	data_len = ntohs(iph->ip_len) - iph->ip_hl*4 - tcph->th_off*4;
+	p_hdr.t_len = ntohs(iph->ip_len) - (iph->ip_hl*4);
+	
 	sum = 0;
+	tcph->th_sum=0;
+	for(i=0; i<tcph->th_off*4; i++){
+		sum+=*(u_int16_t*)tcph++;
+	}
+
 	while(data_len>1) {
 		sum+=*data++;
 		data_len-=2;
