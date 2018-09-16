@@ -28,7 +28,7 @@ struct Pseudoheader {
 u_int16_t calculate(uint16_t* data, int dataLen)
 {
 	u_int16_t oddbyte, result;
-	int sum=0;
+	u_int32_t sum=0;
 	while(dataLen>1) {
 		sum+=ntohs(*data++);
 		dataLen-=2;
@@ -65,8 +65,8 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
     //Cal TCP Segement Checksum
     tcph->th_sum=0; //set Checksum field 0
     uint16_t tcpHeaderResult=calculate((uint16_t*)tcph,ntohs(pseudoheader.TCPLen));
-
-    uint16_t checksum, temp;
+    uint16_t checksum;
+    uint32_t temp;
     temp = pseudoResult+tcpHeaderResult;
     temp = (temp >> 16) + (temp & 0xffff);
     temp = (temp >> 16) + (temp & 0xffff);
