@@ -96,10 +96,9 @@ static u_int32_t print_pkt (struct nfq_data *tb)
         id = ntohl(ph->packet_id);
     }
 
-        ret = nfq_get_payload(tb, &data);
-        if(ret>=0) 
+    ret = nfq_get_payload(tb, &data);
+    if(ret>=0) 
 
-	fputc('\n', stdout);
    // dump(data,ret);
     struct ipv4_hdr *iph = (struct ipv4_hdr *)data;
     if(iph->ip_p==6){
