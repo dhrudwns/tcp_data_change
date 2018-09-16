@@ -71,7 +71,7 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
     temp = (temp >> 16) + (temp & 0xffff);
     temp = (temp >> 16) + (temp & 0xffff);
     checksum = ~temp;
-    tcph->th_sum=~checksum;
+    tcph->th_sum=checksum;
     return checksum;
 
 
@@ -82,7 +82,7 @@ void dump(unsigned char* buf, int size) {
 	for (i = 0; i < size; i++) {
 	 	if (i % 16 == 0)
 			printf("\n");
-		printf("%02x ", buf[i]);
+			printf("%02x ", buf[i]);
 	}
 }
 
@@ -100,38 +100,33 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
     ret = nfq_get_payload(tb, &data);
     if(ret>=0){
-
-   // dump(data,ret);
-    struct ipv4_hdr *iph = (struct ipv4_hdr *)data;
-    if(iph->ip_p==6){
-    	data+=(iph->ip_hl)*4;
-	printf("%d", iph->ip_len);
-    	struct tcp_hdr *tcph = (struct tcp_hdr *)data;
-		if(ntohs(tcph->th_sport)==80){
-    			 data+=(tcph->th_off)*4;
-			 regex pattern("hacking");
-			 string s_data;
-			 s_data = (char*) data;
-			 smatch m;
-			 if(regex_search(s_data, m, pattern))
-			 {
-				 regex find("hacking");
-				 s_data = regex_replace(s_data, find, "hooking");
-				 unsigned char* new_data = (unsigned char*)s_data.c_str();
-				 calTCPChecksum(new_data, ret);
-				 new_data_len = ret;
-				 flag=1;
-			 }
-			 else
-			 {
-				 flag=0;
-			 }
-				
-			 
-		}
+    	struct ipv4_hdr *iph = (struct ipv4_hdr *)data;
+    	if(iph->ip_p==6){
+    		data+=(iph->ip_hl)*4;
+		printf("%d", iph->ip_len);
+    		struct tcp_hdr *tcph = (struct tcp_hdr *)data;
+			if(ntohs(tcph->th_sport)==80){
+    				 data+=(tcph->th_off)*4;
+				 regex pattern("hacking");
+				 string s_data;
+				 s_data = (char*) data;
+				 smatch m;
+					 if(regex_search(s_data, m, pattern)) {
+				 		regex find("hacking");
+				 		s_data = regex_replace(s_data, find, "hooking");
+				 		unsigned char* new_data = (unsigned char*)s_data.c_str();
+				 		calTCPChecksum(new_data, ret);
+				 		new_data_len = ret;
+				 		flag=1;
+					   }
+			 		else
+			 		{
+				 		flag=0;
+					 }
+			}
+	}
     }
-    }
-    return id;
+	return id;
 }
 
 static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
