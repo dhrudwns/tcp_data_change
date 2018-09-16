@@ -114,13 +114,12 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 			 smatch m;
 			 if(regex_search(s_data, m, pattern))
 			 {
-			 regex find("hacking");
-			 s_data = regex_replace(s_data, find, "hooking");
-			 unsigned char* new_data = (unsigned char*)s_data.c_str();
-			 calTCPChecksum(new_data, ret);
-			 new_data_len = ret;
-
-			 flag=1;
+				 regex find("hacking");
+				 s_data = regex_replace(s_data, find, "hooking");
+				 unsigned char* new_data = (unsigned char*)s_data.c_str();
+				 calTCPChecksum(new_data, ret);
+				 new_data_len = ret;
+				 flag=1;
 			 }
 			 else
 			 {
@@ -139,7 +138,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
     u_int32_t id = print_pkt(nfa);
     printf("entering callback\n");
     if(flag==1)
-    return nfq_set_verdict(qh, id, NF_ACCEPT, new_data_len, new_data);
+    	return nfq_set_verdict(qh, id, NF_ACCEPT, new_data_len, new_data);
     else
 	    return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
 }
