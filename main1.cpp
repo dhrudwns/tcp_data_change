@@ -35,13 +35,12 @@ u_int16_t calculate(uint16_t* data, int dataLen)
 	}
 	if(dataLen==1){
 		oddbyte=0;
-		*((u_char*)&oddbyte)=*(u_char*)data;
+		*((u_char*)&oddbyte)=ntohs(*(u_char*)data);
 		sum+=oddbyte;
 	}
 	sum = (sum>>16) + (sum & 0xffff);
 	sum = (sum>>16) + (sum & 0xffff);
-	sum += (sum>>16);
-	result = ~sum;	
+	result = (uint16_t)sum;	
 	return result;
 		
 }
@@ -67,9 +66,12 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
     tcph->th_sum=0; //set Checksum field 0
     uint16_t tcpHeaderResult=calculate((uint16_t*)tcph,ntohs(pseudoheader.TCPLen));
 
-    uint16_t checksum;
-    checksum = pseudoResult+tcpHeaderResult;
-    tcph->th_sum=checksum;
+    uint16_t checksum, temp;
+    temp = pseudoResult+tcpHeaderResult;
+    temp = (temp >> 16) + (temp & 0xffff);
+    temp = (temp >> 16) + (temp & 0xffff);
+    checksum = ~temp;
+    tcph->th_sum=~checksum;
     return checksum;
 
 
@@ -97,7 +99,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
     }
 
     ret = nfq_get_payload(tb, &data);
-    if(ret>=0) 
+    if(ret>=0){
 
    // dump(data,ret);
     struct ipv4_hdr *iph = (struct ipv4_hdr *)data;
@@ -127,6 +129,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 				
 			 
 		}
+    }
     }
     return id;
 }
