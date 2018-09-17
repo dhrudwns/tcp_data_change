@@ -90,6 +90,7 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
 static uint32_t print_pkt (struct nfq_data *tb)
 {
 	int id = 0;
+	flag = 0;
 	struct nfqnl_msg_packet_hdr *ph;
 	int ret;
 	unsigned char *data;
@@ -102,20 +103,18 @@ static uint32_t print_pkt (struct nfq_data *tb)
 	ret = nfq_get_payload(tb, &data);
 	if(ret >= 0) {
 		new_data = data;
-		struct ipv4_hdr* ipH = (struct ipv4_hdr *) data;
-		if(ipH->ip_p == 6){
-			struct tcp_hdr* tcph = (struct tcp_hdr *)((uint8_t*)ipH+ipH->ip_hl*4);
-			uint16_t len = (ipH->ip_hl*4)+(tcph->th_off*4);
-			flag = 0;
-			if(ntohs(tcph->th_sport) == 80 &&(htons(ipH->ip_len)>len)){
-				 regex pattern("hacking");
-				 string s_data;
-				 s_data = (char*)((uint8_t*)tcph+tcph->th_off*4);
+		struct ipv4_hdr* iph = (struct ipv4_hdr *) data;
+		if(iph->ip_p == 6){
+			struct tcp_hdr* tcph = (struct tcp_hdr *)((uint8_t*)iph+iph->ip_hl*4);
+			uint16_t payload_len =ntohs(iph->ip_len) - (iph->ip_hl*4) - (tcph->th_off*4);
+			uint8_t* payload = (uint8_t*)tcph+tcph->th_off*4;
+			if(ntohs(tcph->th_sport) == 80 && payload_len>0){
+				 static regex pattern("hacking");
+				 string s_data = (char*)payload;
 				 smatch m;
 					 if(regex_search(s_data, m, pattern)) {
-						regex find("hacking");
-				 		s_data = regex_replace(s_data, find, "hooking");
-						memcpy((new_data+len), s_data.c_str(), ret-len);
+				 		s_data = regex_replace(s_data, pattern, "hooking");
+						memcpy(payload, s_data.c_str(), payload_len);
 						calTCPChecksum(new_data ,ret);
 						new_data_len = ret;
 						flag = 1;
