@@ -6,9 +6,9 @@
  */
 struct ethernet_hdr
 {
-    u_int8_t  dst[ETHER_ADDR_LEN];/* destination ethernet address */
-    u_int8_t  src[ETHER_ADDR_LEN];/* source ethernet address */
-    u_int16_t type;                 /* protocol */
+    uint8_t  dst[ETHER_ADDR_LEN];/* destination ethernet address */
+    uint8_t  src[ETHER_ADDR_LEN];/* source ethernet address */
+    uint16_t type;                 /* protocol */
 };
 
 #ifndef ETHERTYPE_PUP
@@ -44,14 +44,14 @@ struct ethernet_hdr
 struct ipv4_hdr
 {
 #if (LIBNET_LIL_ENDIAN)
-	u_int8_t ip_hl:4,
+	uint8_t ip_hl:4,
 		 ip_v:4;
 #endif
 #if (LIBNET_BIG_ENDIAN)
-        u_int8_t ip_v:4, 
+        uint8_t ip_v:4, 
          	 ip_hl:4;     
 #endif
-    u_int8_t ip_tos;       /* type of service */
+    uint8_t ip_tos;       /* type of service */
 #ifndef IPTOS_LOWDELAY
 #define IPTOS_LOWDELAY      0x10
 #endif
@@ -64,9 +64,9 @@ struct ipv4_hdr
 #ifndef IPTOS_LOWCOST
 #define IPTOS_LOWCOST       0x02
 #endif
-    u_int16_t ip_len;         /* total length */
-    u_int16_t ip_id;          /* identification */
-    u_int16_t ip_off;
+    uint16_t ip_len;         /* total length */
+    uint16_t ip_id;          /* identification */
+    uint16_t ip_off;
 #ifndef IP_RF
 #define IP_RF 0x8000        /* reserved fragment flag */
 #endif
@@ -79,10 +79,10 @@ struct ipv4_hdr
 #ifndef IP_OFFMASK
 #define IP_OFFMASK 0x1fff   /* mask for fragmenting bits */
 #endif
-    u_int8_t ip_ttl;          /* time to live */
-    u_int8_t ip_p;            /* protocol */
-    u_int16_t ip_sum;         /* checksum */
-    u_int32_t ip_src, ip_dst; /* source and dest address */
+    uint8_t ip_ttl;          /* time to live */
+    uint8_t ip_p;            /* protocol */
+    uint16_t ip_sum;         /* checksum */
+    uint32_t ip_src, ip_dst; /* source and dest address */
 };
 /*
  *  IP options
@@ -120,20 +120,20 @@ struct ipv4_hdr
  */
 struct tcp_hdr
 {
-    u_int16_t th_sport;       /* source port */
-    u_int16_t th_dport;       /* destination port */
-    u_int32_t th_seq;          /* sequence number */
-    u_int32_t th_ack;          /* acknowledgement number */ 
+    uint16_t th_sport;       /* source port */
+    uint16_t th_dport;       /* destination port */
+    uint32_t th_seq;          /* sequence number */
+    uint32_t th_ack;          /* acknowledgement number */ 
 #if (LIBNET_LIL_ENDIAN)
-    u_int8_t th_x2:4,         /* (unused) */
+    uint8_t th_x2:4,         /* (unused) */
            th_off:4;        /* data offset */
 #endif
 #if (LIBNET_BIG_ENDIAN)
-    u_int8_t th_off:4,
+    uint8_t th_off:4,
            th_x2:4;
 #endif
 
-    u_int8_t  th_flags;       /* control flags */
+    uint8_t  th_flags;       /* control flags */
 #ifndef TH_FIN
 #define TH_FIN    0x01      /* finished send data */
 #endif
@@ -158,7 +158,7 @@ struct tcp_hdr
 #ifndef TH_CWR
 #define TH_CWR    0x80
 #endif
-    u_int16_t th_win;         /* window */
-    u_int16_t th_sum;         /* checksum */
-    u_int16_t th_urp;         /* urgent pointer */
+    uint16_t th_win;         /* window */
+    uint16_t th_sum;         /* checksum */
+    uint16_t th_urp;         /* urgent pointer */
 };
