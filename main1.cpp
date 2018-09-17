@@ -20,6 +20,7 @@ uint16_t flag = 0;
 int new_data_len;
 unsigned char* new_data;
 unsigned char* data;
+string s_data;
 
 void dump(unsigned char* buf, int size) {
 	int i;
@@ -78,6 +79,7 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
     //init Pseudoheader
     struct ipv4_hdr *iph=(struct ipv4_hdr*)data;
     struct tcp_hdr *tcph=(struct tcp_hdr*)(data+iph->ip_hl*4);
+    printf("3. hamsu %u\n", ntohs(iph->ip_len));
    
 
     memcpy(&pseudoheader.srcIP,&iph->ip_src,sizeof(pseudoheader.srcIP));
@@ -121,7 +123,10 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 
 	ret = nfq_get_payload(tb, &data);
 	if(ret >= 0) {
+		new_data = data;
 		struct ipv4_hdr* ipH = (struct ipv4_hdr *) data;
+		printf("1. ret %u\n", ret);
+		printf("2. ipH %u\n", ntohs(ipH->ip_len));
 		if(ipH->ip_p == 6){
 			data += (ipH->ip_hl*4);
 			struct tcp_hdr* tcph = (struct tcp_hdr *)data;
@@ -137,14 +142,18 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 						regex find("hacking");
 				 		s_data = regex_replace(s_data, find, "hooking");
 						//memcpy(new_data+len, s_data.c_str(), ret-len);
-						memcpy(data+len, s_data.c_str(), ret-len);
-						unsigned char* new_data = data;	
-						printf("1. ip_len %u\n", ntohs(ipH->ip_len));
-						printf("2. ret %u\n", ret);
-						calTCPChecksum(new_data, ntohs(ipH->ip_len));
-				 		new_data_len =ret; 
-						flag=1;
-					   }
+						//memcpy(data+len, s_data.c_str(), ret-len);
+						//unsigned char* new_data = data;	
+						//printf("2. ret %u\n", ret);
+						//calTCPChecksum((unsigned char*)s_data.c_str(), ret);
+						//printf("3. change %u\n", s_data.size());
+				 		//new_data_len =ntohs(ipH->ip_len)-len;
+					        //dump((unsigned char*)s_data.c_str(), new_data_len);	
+					   	memcpy((new_data + len), s_data.c_str(), (ret - len));
+						calTCPChecksum(new_data ,ret);
+						new_data_len = ret;
+						flag = 1;
+					 }
 			}
 
 		}
@@ -165,7 +174,6 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
 	return nfq_set_verdict(qh, id, NF_ACCEPT, new_data_len, new_data);
     }
 }
-
 int main(int argc, char **argv)
 {
     struct nfq_handle *h;
