@@ -65,9 +65,7 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
     //init Pseudoheader
     struct ipv4_hdr *iph=(struct ipv4_hdr*)data;
     struct tcp_hdr *tcph=(struct tcp_hdr*)(data+iph->ip_hl*4);
-    printf("3. hamsu %u\n", ntohs(iph->ip_len));
    
-
     memcpy(&pseudoheader.srcIP,&iph->ip_src,sizeof(pseudoheader.srcIP));
     memcpy(&pseudoheader.destIP,&iph->ip_dst,sizeof(pseudoheader.destIP));
     pseudoheader.protocol=iph->ip_p;
