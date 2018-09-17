@@ -106,8 +106,6 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 	if(ret >= 0) {
 		new_data = data;
 		struct ipv4_hdr* ipH = (struct ipv4_hdr *) data;
-		printf("1. ret %u\n", ret);
-		printf("2. ipH %u\n", ntohs(ipH->ip_len));
 		if(ipH->ip_p == 6){
 			struct tcp_hdr* tcph = (struct tcp_hdr *)((uint8_t*)ipH+ipH->ip_hl*4);
 			uint16_t len = (ipH->ip_hl*4)+(tcph->th_off*4);
