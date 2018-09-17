@@ -17,7 +17,7 @@
 using namespace std;
 
 uint16_t flag = 0;
-int new_data_len;
+uint16_t new_data_len;
 unsigned char* new_data;
 
 void dump(unsigned char* buf, int size) {
