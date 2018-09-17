@@ -19,8 +19,6 @@ using namespace std;
 uint16_t flag = 0;
 int new_data_len;
 unsigned char* new_data;
-unsigned char* data;
-string s_data;
 
 void dump(unsigned char* buf, int size) {
 	int i;
@@ -44,30 +42,20 @@ struct Pseudoheader{
 
 uint16_t calculate(uint16_t* data, int dataLen)
 {
-    uint16_t result;
-    int tempChecksum=0;
-    int length;
-    bool flag=false;
-    if((dataLen%2)==0)
-        length=dataLen/2;
-    else
-    {
-        length=(dataLen/2)+1;
-        flag=true;
+    u_int16_t oddbyte, result;
+    u_int32_t sum=0;
+    while(dataLen>1){
+	    sum+=ntohs(*data++);
+	    dataLen-=2;
     }
-
-    for (int i = 0; i < length; ++i) // cal 2byte unit
-    {
-        if(i==length-1&&flag) //last num is odd num
-            tempChecksum+=ntohs(data[i]&0x00ff);
-        else
-            tempChecksum+=ntohs(data[i]);
-
-        if(tempChecksum>CARRY)
-                tempChecksum=(tempChecksum-CARRY)+1;
+    if(dataLen==1){
+	    oddbyte=0;
+	    *((u_char*)&oddbyte)=*(u_char*)data;
+	    sum+=ntohs(oddbyte);
     }
-
-    result=tempChecksum;
+    sum = (sum >> 16) + (sum & 0xffff);
+    sum = (sum >> 16) + (sum & 0xffff);
+    result = (uint16_t)sum;
     return result;
 }
 
@@ -95,16 +83,13 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
     uint16_t tcpHeaderResult=calculate((uint16_t*)tcph,ntohs(pseudoheader.TCPLen));
 
     uint16_t checksum;
-    int tempCheck;
-
-    if((tempCheck=pseudoResult+tcpHeaderResult)>CARRY)
-        checksum=(tempCheck-CARRY) +1;
-    else
-        checksum=tempCheck;
-
-    checksum=ntohs(checksum^0xffff); //xor checksum
+    uint32_t temp;
+    temp = pseudoResult+tcpHeaderResult;
+    temp = (temp >> 16) + (temp & 0xffff);
+    temp = (temp >> 16) + (temp & 0xffff);
+    checksum = ntohs(~temp);
     tcph->th_sum=checksum;
-    new_data_len = ntohs(iph->ip_len);
+
     return checksum;
 }
 
@@ -114,7 +99,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 	int id = 0;
 	struct nfqnl_msg_packet_hdr *ph;
 	int ret;
-	//unsigned char *data;
+	unsigned char *data;
 
 	ph = nfq_get_msg_packet_hdr(tb);
     	if (ph) {
