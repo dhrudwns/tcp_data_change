@@ -18,7 +18,7 @@ using namespace std;
 
 uint16_t flag = 0;
 uint16_t new_data_len;
-unsigned char* new_data;
+uint8_t* new_data;
 
 void dump(unsigned char* buf, int size) {
 	int i;
@@ -41,15 +41,15 @@ struct Pseudoheader{
 
 uint16_t calculate(uint16_t* data, int dataLen)
 {
-    u_int16_t oddbyte, result;
-    u_int32_t sum=0;
+    uint16_t oddbyte, result;
+    uint32_t sum=0;
     while(dataLen>1){
 	    sum+=ntohs(*data++);
 	    dataLen-=2;
     }
     if(dataLen==1){
 	    oddbyte=0;
-	    *((u_char*)&oddbyte)=*(u_char*)data;
+	    *((uint8_t*)&oddbyte)=*(uint8_t*)data;
 	    sum+=ntohs(oddbyte);
     }
     sum = (sum >> 16) + (sum & 0xffff);
@@ -90,7 +90,7 @@ uint16_t calTCPChecksum(uint8_t *data,int dataLen)
 }
 
 
-static u_int32_t print_pkt (struct nfq_data *tb)
+static uint32_t print_pkt (struct nfq_data *tb)
 {
 	int id = 0;
 	struct nfqnl_msg_packet_hdr *ph;
