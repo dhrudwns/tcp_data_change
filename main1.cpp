@@ -38,7 +38,6 @@ struct Pseudoheader{
     uint16_t TCPLen;
 };
 #pragma pack(pop)
-#define CARRY 65536
 
 uint16_t calculate(uint16_t* data, int dataLen)
 {
@@ -61,8 +60,7 @@ uint16_t calculate(uint16_t* data, int dataLen)
 
 uint16_t calTCPChecksum(uint8_t *data,int dataLen)
 {
-    //make Pseudo Header
-    struct Pseudoheader pseudoheader; //saved by network byte order
+    struct Pseudoheader pseudoheader; 
 
     //init Pseudoheader
     struct ipv4_hdr *iph=(struct ipv4_hdr*)data;
@@ -113,28 +111,18 @@ static u_int32_t print_pkt (struct nfq_data *tb)
 		printf("1. ret %u\n", ret);
 		printf("2. ipH %u\n", ntohs(ipH->ip_len));
 		if(ipH->ip_p == 6){
-			data += (ipH->ip_hl*4);
-			struct tcp_hdr* tcph = (struct tcp_hdr *)data;
+			struct tcp_hdr* tcph = (struct tcp_hdr *)((uint8_t*)ipH+ipH->ip_hl*4);
 			uint16_t len = (ipH->ip_hl*4)+(tcph->th_off*4);
 			flag = 0;
 			if(ntohs(tcph->th_sport) == 80 &&(htons(ipH->ip_len)>len)){
-				 data+=(tcph->th_off*4);
 				 regex pattern("hacking");
 				 string s_data;
-				 s_data = (char*)data;
+				 s_data = (char*)((uint8_t*)tcph+tcph->th_off*4);
 				 smatch m;
 					 if(regex_search(s_data, m, pattern)) {
 						regex find("hacking");
 				 		s_data = regex_replace(s_data, find, "hooking");
-						//memcpy(new_data+len, s_data.c_str(), ret-len);
-						//memcpy(data+len, s_data.c_str(), ret-len);
-						//unsigned char* new_data = data;	
-						//printf("2. ret %u\n", ret);
-						//calTCPChecksum((unsigned char*)s_data.c_str(), ret);
-						//printf("3. change %u\n", s_data.size());
-				 		//new_data_len =ntohs(ipH->ip_len)-len;
-					        //dump((unsigned char*)s_data.c_str(), new_data_len);	
-					   	memcpy((new_data + len), s_data.c_str(), (ret - len));
+						memcpy((new_data+len), s_data.c_str(), ret-len);
 						calTCPChecksum(new_data ,ret);
 						new_data_len = ret;
 						flag = 1;
