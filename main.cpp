@@ -37,7 +37,7 @@ struct Pseudoheader{
 };
 #pragma pack(pop)
 
-uint16_t calculate(uint16_t* data, int dataLen)
+uint16_t calculate(uint16_t* data, uint32_t dataLen)
 {
     uint32_t sum=0;
     while(dataLen>1){
@@ -52,7 +52,7 @@ uint16_t calculate(uint16_t* data, int dataLen)
     return (uint16_t)sum;
 }
 
-uint16_t calTCPChecksum(uint8_t *data,int dataLen)
+uint16_t calTCPChecksum(uint8_t *data, uint32_t dataLen)
 {
     struct Pseudoheader pseudoheader; 
 
