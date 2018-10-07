@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <string>					//std::string
-#include <string.h>					//memcpy, strcpy, strlen ~
+#include <string>					
+#include <string.h>					
 #include <regex>
 #include <unistd.h>
-#include <netinet/in.h>					// in_addr
-#include <arpa/inet.h>					// ntohs ~
+#include <netinet/in.h>				
+#include <arpa/inet.h>					
 #include <linux/types.h>
 #include <linux/netfilter.h>
 #include <errno.h>
@@ -39,16 +39,13 @@ struct Pseudoheader{
 
 uint16_t calculate(uint16_t* data, int dataLen)
 {
-    uint16_t oddbyte;
     uint32_t sum=0;
     while(dataLen>1){
 	    sum+=ntohs(*data++);
 	    dataLen-=2;
     }
     if(dataLen==1){
-	    oddbyte=0;
-	    *((uint8_t*)&oddbyte)=*(uint8_t*)data;
-	    sum+=ntohs(oddbyte);
+	    sum+=ntohs((uint8_t)*data);
     }
     sum = (sum >> 16) + (sum & 0xffff);
     sum = (sum >> 16) + (sum & 0xffff);
