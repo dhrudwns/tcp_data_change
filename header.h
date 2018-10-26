@@ -1,5 +1,5 @@
 #define ETHER_ADDR_LEN 6
-
+#include <stdint.h>
 /*
  *  Ethernet II header
  *  Static header size: 14 bytes
@@ -44,12 +44,12 @@ struct ethernet_hdr
 struct ipv4_hdr
 {
 #if (LIBNET_LIL_ENDIAN)
-	uint8_t ip_hl:4,
-		 ip_v:4;
+    uint8_t ip_hl:4,
+         ip_v:4;
 #endif
 #if (LIBNET_BIG_ENDIAN)
-        uint8_t ip_v:4, 
-         	 ip_hl:4;     
+        uint8_t ip_v:4,
+             ip_hl:4;
 #endif
     uint8_t ip_tos;       /* type of service */
 #ifndef IPTOS_LOWDELAY
@@ -75,7 +75,7 @@ struct ipv4_hdr
 #endif
 #ifndef IP_MF
 #define IP_MF 0x2000        /* more fragments flag */
-#endif 
+#endif
 #ifndef IP_OFFMASK
 #define IP_OFFMASK 0x1fff   /* mask for fragmenting bits */
 #endif
@@ -92,7 +92,7 @@ struct ipv4_hdr
 #endif
 #ifndef IPOPT_NOP
 #define IPOPT_NOP       1   /* no operation */
-#endif   
+#endif
 #ifndef IPOPT_RR
 #define IPOPT_RR        7   /* record packet route */
 #endif
@@ -100,7 +100,7 @@ struct ipv4_hdr
 #define IPOPT_TS        68  /* timestamp */
 #endif
 #ifndef IPOPT_SECURITY
-#define IPOPT_SECURITY  130 /* provide s,c,h,tcc */   
+#define IPOPT_SECURITY  130 /* provide s,c,h,tcc */
 #endif
 #ifndef IPOPT_LSRR
 #define IPOPT_LSRR      131 /* loose source route */
@@ -123,7 +123,7 @@ struct tcp_hdr
     uint16_t th_sport;       /* source port */
     uint16_t th_dport;       /* destination port */
     uint32_t th_seq;          /* sequence number */
-    uint32_t th_ack;          /* acknowledgement number */ 
+    uint32_t th_ack;          /* acknowledgement number */
 #if (LIBNET_LIL_ENDIAN)
     uint8_t th_x2:4,         /* (unused) */
            th_off:4;        /* data offset */
